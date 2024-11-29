@@ -32,6 +32,7 @@ import java.util.Optional;
  *
  * @see JdbcDialectFactory
  */
+// 方言的接口，提供类型验证、类型转换、insert、update、delete等语句的构造
 @PublicEvolving
 public interface JdbcDialect extends Serializable {
 

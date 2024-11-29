@@ -58,18 +58,24 @@ class SimpleBatchStatementExecutor<T, V> implements JdbcBatchStatementExecutor<T
         this.st = connection.prepareStatement(sql);
     }
 
+    // 将上游传过来的数据类型转换之后存入到了list中。
+    // 并没有真正触发写数据库的方法。
     @Override
     public void addToBatch(T record) {
         batch.add(valueTransformer.apply(record));
     }
 
+    // 执行批量写入
     @Override
     public void executeBatch() throws SQLException {
+        // 假如这个批次的不为空，则设置好每一条数据与sql一一对应的参数，
         if (!batch.isEmpty()) {
             for (V r : batch) {
+                // 调用的我们在创建jdbc sink组件时的设置的实体与sql中参数的对应关系代码
                 parameterSetter.accept(st, r);
                 st.addBatch();
             }
+            // 执行PreparedStatement的executeBatch的方法。将数据通过jdbc批量写入。
             st.executeBatch();
             batch.clear();
         }

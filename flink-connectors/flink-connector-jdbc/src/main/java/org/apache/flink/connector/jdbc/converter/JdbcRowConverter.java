@@ -30,6 +30,7 @@ import java.sql.SQLException;
  * Converter that is responsible to convert between JDBC object and Flink SQL internal data
  * structure {@link RowData}.
  */
+// 转换器，负责 JDBC 对象和 Flink SQL 内部数据结构RowData之间的转换
 @PublicEvolving
 public interface JdbcRowConverter extends Serializable {
 
@@ -38,6 +39,7 @@ public interface JdbcRowConverter extends Serializable {
      *
      * @param resultSet ResultSet from JDBC
      */
+    // 将从JDBC ResultSet中获取的数据转换为Flink内部的RowData对象
     RowData toInternal(ResultSet resultSet) throws SQLException;
 
     /**
@@ -47,6 +49,7 @@ public interface JdbcRowConverter extends Serializable {
      * @param statement The statement to be filled.
      * @return The filled statement.
      */
+    // 将Flink内部的RowData对象中获取的数据转换为JDBC FieldNamedPreparedStatement对象，并填充到给定的statement中
     FieldNamedPreparedStatement toExternal(RowData rowData, FieldNamedPreparedStatement statement)
             throws SQLException;
 }

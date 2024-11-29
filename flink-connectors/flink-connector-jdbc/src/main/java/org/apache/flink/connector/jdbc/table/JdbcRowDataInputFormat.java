@@ -100,10 +100,12 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
         // do nothing here
     }
 
+    // 创建连接
     @Override
     public void openInputFormat() {
         // called once per inputFormat (on open)
         try {
+            // Connection 获取
             Connection dbConn = connectionProvider.getOrEstablishConnection();
             // set autoCommit mode only if it was explicitly configured.
             // keep connection default otherwise.
@@ -150,6 +152,7 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
      *     a "hook" to the query parameters otherwise (using its <i>splitNumber</i>)
      * @throws IOException if there's an error during the execution of the query
      */
+    // 执行查询
     @Override
     public void open(InputSplit inputSplit) throws IOException {
         try {
@@ -225,6 +228,7 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
         }
     }
 
+    // 输出格式类型
     @Override
     public TypeInformation<RowData> getProducedType() {
         return rowDataTypeInfo;
@@ -248,12 +252,14 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
      * @return row containing next {@link RowData}
      * @throws IOException
      */
+    // 获取一行数据
     @Override
     public RowData nextRecord(RowData reuse) throws IOException {
         try {
             if (!hasNext) {
                 return null;
             }
+            // 把resultSet转成rowData
             RowData row = rowConverter.toInternal(resultSet);
             // update hasNext after we've read the record
             hasNext = resultSet.next();
@@ -270,6 +276,7 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
         return cachedStatistics;
     }
 
+    // 创建输入分片
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         if (parameterValues == null) {

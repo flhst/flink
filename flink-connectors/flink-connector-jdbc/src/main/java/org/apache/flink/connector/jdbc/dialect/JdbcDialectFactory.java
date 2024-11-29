@@ -30,6 +30,9 @@ import org.apache.flink.annotation.PublicEvolving;
  *
  * @see JdbcDialect
  */
+// Dialect方言选择
+// 根据URL 通过DialectFactory选择方言和driver，并通过继承AbstractDialect实现对应的方言
+// JdbcDialectFactory识别不同的URL，对应不同的数据库类型
 @PublicEvolving
 public interface JdbcDialectFactory {
 

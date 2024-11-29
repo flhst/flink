@@ -70,6 +70,7 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
         }
     }
 
+    // 将resultSet转换成RowData
     @Override
     public RowData toInternal(ResultSet resultSet) throws SQLException {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());

@@ -35,6 +35,10 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /** A generic SinkFunction for JDBC. */
+// 继承自RichSinkFunction，并实现了CheckpointedFunction和InputTypeConfigurable两个接口。
+//   1、RichSinkFunction：很常见的一个基础的SinkFunction组件，提供了定义函数生命周期的方法，以及访问执行函数的上下文的方法。
+//   2、CheckpointedFunction：要实现检查点功能必须实现的接口
+//   3、InputTypeConfigurable：实现该接口可获取到上游数据的类型信息
 @Internal
 public class GenericJdbcSinkFunction<T> extends RichSinkFunction<T>
         implements CheckpointedFunction, InputTypeConfigurable {
@@ -52,6 +56,7 @@ public class GenericJdbcSinkFunction<T> extends RichSinkFunction<T>
         outputFormat.open(ctx.getIndexOfThisSubtask(), ctx.getNumberOfParallelSubtasks());
     }
 
+    // 处理数据
     @Override
     public void invoke(T value, Context context) throws IOException {
         outputFormat.writeRecord(value);

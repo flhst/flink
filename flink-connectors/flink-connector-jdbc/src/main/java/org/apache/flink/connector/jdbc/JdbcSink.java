@@ -62,6 +62,11 @@ public class JdbcSink {
      * @param executionOptions parameters of execution, such as batch size and maximum retries
      * @param connectionOptions parameters of connection, such as JDBC URL
      */
+    // 创建JDBC Sink组件
+    //  sql：DML类型sql，如inster，update等等
+    //  statementBuilder：设置你sql中需要插入的数据与上游来源数据的对应关系
+    //  executionOptions：执行参数，如：批量大小，最大重试次数等
+    //  connectionOptions：设置jdbc的一些连接信息
     public static <T> SinkFunction<T> sink(
             String sql,
             JdbcStatementBuilder<T> statementBuilder,

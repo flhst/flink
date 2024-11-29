@@ -64,6 +64,10 @@ import static org.apache.flink.connector.jdbc.utils.JdbcUtils.setRecordToStateme
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /** A JDBC outputFormat that supports batching records before writing records to database. */
+// 可以看到其继承自RichOutputFormat，并实现了Flushable和InputTypeConfigurable接口。
+//   1、RichOutputFormat：很常见的一个基础的OutputFormat组件，提供了访问上下文的方法。
+//   2、Flushable：将缓冲区数据写入下一层流的方法
+//   3、InputTypeConfigurable：实现该接口可获取到上游数据的类型信息
 @Internal
 public class JdbcOutputFormat<In, JdbcIn, JdbcExec extends JdbcBatchStatementExecutor<JdbcIn>>
         extends RichOutputFormat<In> implements Flushable, InputTypeConfigurable {
@@ -184,12 +188,22 @@ public class JdbcOutputFormat<In, JdbcIn, JdbcExec extends JdbcBatchStatementExe
 
     @Override
     public final synchronized void writeRecord(In record) throws IOException {
+        // 检查当前数据有没有一些写数据的异常错误，假如有则需要终止后续批次的数据写入操作，抛出异常
         checkFlushException();
 
         try {
+            // 假如设置了TypeSerializer成员变量，则通过TypeSerializer的copy方法复制一份数据。
+            // TypeSerializer是flink自己一套用于序列化和反序列化数据的体系。
             In recordCopy = copyIfNecessary(record);
+            // 将当前数据添加到即将要发送数据的一个批次钟，实际上就是存到一个list里面
+            // 这里其实并没有触发写数据库的方法。
+            // 具体写数据的逻辑在flush()方法中。
             addToBatch(record, jdbcRecordExtractor.apply(recordCopy));
+            // 当前批次加一
             batchCount++;
+            // 判断当前批次数量是否大于我们设置的最大批次大小，
+            // 假如大于，
+            // 则调用flush()方法将该批次数据写出到数据库。
             if (executionOptions.getBatchSize() > 0
                     && batchCount >= executionOptions.getBatchSize()) {
                 flush();
@@ -209,8 +223,19 @@ public class JdbcOutputFormat<In, JdbcIn, JdbcExec extends JdbcBatchStatementExe
 
     @Override
     public synchronized void flush() throws IOException {
+        // 判断之前数据批次的写入过程中是否抛出过异常，假如抛出过，则立即抛出异常终止此次写入操作
         checkFlushException();
 
+        // 进入一个循环，循环的最大次数为我们设置的最大重试次数。
+        // 首先执行attemptFlush()方法，
+        //   1、假如该方法执行成功：
+        //     则将该批次的数据设置为0。
+        //   2、假如出现了异常：
+        //     先判断是否超过了最大的重试次数，超过了则直接抛出该异常。
+        //     没有超过重试次数，则检查当前jdbc连接是否正常，不正常则重连jdbc。
+        //     随后睡眠 1s*重启次数 的时长后结束该方法。
+        // 可以看到flush方法主要封装了一些重试和异常的逻辑，
+        // 真正写入方法是attemptFlush()
         for (int i = 0; i <= executionOptions.getMaxRetries(); i++) {
             try {
                 attemptFlush();

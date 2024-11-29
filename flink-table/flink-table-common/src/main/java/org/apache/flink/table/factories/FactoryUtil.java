@@ -926,6 +926,10 @@ public final class FactoryUtil {
         }
 
         /** Validates the options of the factory. It checks for unconsumed option keys. */
+        // 作用: 验证配置选项的基本有效性。
+        // 具体实现: helper.validate() 方法通常会检查配置选项是否存在、格式是否正确、是否有必填项缺失等基本问题。这个方法是由
+        // FactoryUtil.TableFactoryHelper 类提供的，确保在创建表工厂时，配置选项是有效的。
+        // 示例: 检查是否提供了必要的连接字符串、用户名、密码等基本信息。
         public void validate() {
             validateFactoryOptions(factory, allOptions);
             validateUnconsumedKeys(
