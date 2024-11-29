@@ -455,7 +455,10 @@ public class AkkaRpcService implements RpcService {
         actorSystemTerminationFuture.whenComplete(
                 (Void ignored, Throwable throwable) -> {
                     runWithContextClassLoader(
-                            () -> FutureUtils.doForward(ignored, throwable, terminationFuture),
+                            () -> {
+                                FutureUtils.doForward(ignored, throwable, terminationFuture);
+                                return null;
+                            },
                             flinkClassLoader);
 
                     LOG.info("Stopped Akka RPC service.");

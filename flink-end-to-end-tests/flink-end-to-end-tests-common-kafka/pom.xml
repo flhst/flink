@@ -89,21 +89,21 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-sql-client-test</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
 		</dependency>
 		<dependency>
 			<!-- Used by maven-dependency-plugin -->
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-sql-avro</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
 		</dependency>
 		<dependency>
 			<!-- Used by maven-dependency-plugin -->
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-sql-avro-confluent-registry</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
 		</dependency>
 
 		<dependency>
@@ -116,14 +116,21 @@ under the License.
 			<groupId>io.confluent</groupId>
 			<artifactId>kafka-avro-serializer</artifactId>
 			<version>6.2.2</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
+		</dependency>
+
+		<dependency>
+			<groupId>io.confluent</groupId>
+			<artifactId>kafka-schema-serializer</artifactId>
+			<version>6.2.2</version>
+<!--			<scope>test</scope>-->
 		</dependency>
 
 		<dependency>
 			<groupId>io.confluent</groupId>
 			<artifactId>kafka-schema-registry-client</artifactId>
 			<version>6.2.2</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.kafka</groupId>
@@ -136,7 +143,7 @@ under the License.
 			<groupId>org.apache.avro</groupId>
 			<artifactId>avro</artifactId>
 			<version>${avro.version}</version>
-			<scope>test</scope>
+<!--			<scope>test</scope>-->
 		</dependency>
 
 		<dependency>

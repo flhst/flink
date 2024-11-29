@@ -90,7 +90,10 @@ public class ClassLoadingUtils {
         future.whenComplete(
                 (value, throwable) ->
                         runWithContextClassLoader(
-                                () -> FutureUtils.doForward(value, throwable, guardedFuture),
+                                () -> {
+                                    FutureUtils.doForward(value, throwable, guardedFuture);
+                                    return value;
+                                },
                                 contextClassLoader));
         return guardedFuture;
     }
