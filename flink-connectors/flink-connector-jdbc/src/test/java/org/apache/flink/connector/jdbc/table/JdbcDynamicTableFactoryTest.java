@@ -20,8 +20,10 @@ package org.apache.flink.connector.jdbc.table;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.internal.JdbcFullTest;
 import org.apache.flink.connector.jdbc.internal.options.JdbcConnectorOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
+import org.apache.flink.connector.jdbc.internal.options.JdbcFilterOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.catalog.Column;
@@ -85,6 +87,7 @@ public class JdbcDynamicTableFactoryTest {
                 new JdbcDynamicTableSource(
                         options,
                         JdbcReadOptions.builder().build(),
+                        JdbcFilterOptions.builder().build(),
                         LookupOptions.MAX_RETRIES.defaultValue(),
                         null,
                         SCHEMA.toPhysicalRowDataType());
@@ -138,10 +141,12 @@ public class JdbcDynamicTableFactoryTest {
                         .setFetchSize(20)
                         .setAutoCommit(false)
                         .build();
+        JdbcFilterOptions filterOptions = JdbcFilterOptions.builder().setFilter("").build();
         JdbcDynamicTableSource expected =
                 new JdbcDynamicTableSource(
                         options,
                         readOptions,
+                        filterOptions,
                         LookupOptions.MAX_RETRIES.defaultValue(),
                         null,
                         SCHEMA.toPhysicalRowDataType());
@@ -170,6 +175,7 @@ public class JdbcDynamicTableFactoryTest {
                 new JdbcDynamicTableSource(
                         options,
                         JdbcReadOptions.builder().build(),
+                        JdbcFilterOptions.builder().build(),
                         10,
                         DefaultLookupCache.fromConfig(Configuration.fromMap(properties)),
                         SCHEMA.toPhysicalRowDataType());
@@ -195,6 +201,7 @@ public class JdbcDynamicTableFactoryTest {
                 new JdbcDynamicTableSource(
                         options,
                         JdbcReadOptions.builder().build(),
+                        JdbcFilterOptions.builder().build(),
                         10,
                         DefaultLookupCache.newBuilder()
                                 .maximumSize(1000L)
@@ -380,6 +387,7 @@ public class JdbcDynamicTableFactoryTest {
                 new JdbcDynamicTableSource(
                         options,
                         JdbcReadOptions.builder().build(),
+                        JdbcFilterOptions.builder().build(),
                         10,
                         DefaultLookupCache.newBuilder()
                                 .maximumSize(1000L)

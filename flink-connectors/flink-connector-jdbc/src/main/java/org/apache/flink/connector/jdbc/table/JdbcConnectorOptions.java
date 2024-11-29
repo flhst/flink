@@ -113,6 +113,11 @@ public class JdbcConnectorOptions {
                     .defaultValue(true)
                     .withDescription("Sets whether the driver is in auto-commit mode.");
 
+    public static final ConfigOption<String> JDBC_FILTER_QUERY =
+            ConfigOptions.key("jdbc.filter.query")
+                    .stringType().defaultValue("")
+                    .withDescription("push filter to database");
+
     // -----------------------------------------------------------------------------------------
     // Lookup options
     // -----------------------------------------------------------------------------------------

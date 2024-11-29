@@ -18,9 +18,12 @@
 
 package org.apache.flink.connector.jdbc.table;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcConnectorOptions;
+import org.apache.flink.connector.jdbc.internal.options.JdbcFilterOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbc.split.JdbcNumericBetweenParametersProvider;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -41,8 +44,13 @@ import org.apache.flink.util.Preconditions;
 import javax.annotation.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /** A {@link DynamicTableSource} for JDBC. */
+// getScanRuntimeProvider 数据查找
+// getLookupRuntimeProvider 数据遍历
+// lookup 简单理解为根据提交查找，不必读取整个表，并且可以在需要时从（可能不断变化的）外部表中延迟获取各个值
+// scan 在运行时扫描来自外部存储系统的所有行
 @Internal
 public class JdbcDynamicTableSource
         implements ScanTableSource,
@@ -52,6 +60,7 @@ public class JdbcDynamicTableSource
 
     private final JdbcConnectorOptions options;
     private final JdbcReadOptions readOptions;
+    private final JdbcFilterOptions filterOptions;
     private final int lookupMaxRetryTimes;
     @Nullable private final LookupCache cache;
     private DataType physicalRowDataType;
@@ -61,17 +70,20 @@ public class JdbcDynamicTableSource
     public JdbcDynamicTableSource(
             JdbcConnectorOptions options,
             JdbcReadOptions readOptions,
+            JdbcFilterOptions filterOptions,
             int lookupMaxRetryTimes,
             @Nullable LookupCache cache,
             DataType physicalRowDataType) {
         this.options = options;
         this.readOptions = readOptions;
+        this.filterOptions = filterOptions;
         this.lookupMaxRetryTimes = lookupMaxRetryTimes;
         this.cache = cache;
         this.physicalRowDataType = physicalRowDataType;
         this.dialectName = options.getDialect().dialectName();
     }
 
+    // 数据查找
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
         // JDBC only support non-nested look up keys
@@ -98,8 +110,10 @@ public class JdbcDynamicTableSource
         }
     }
 
+    // 数据遍历
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+        // 初始化Builder
         final JdbcRowDataInputFormat.Builder builder =
                 JdbcRowDataInputFormat.builder()
                         .setDrivername(options.getDriverName())
@@ -108,15 +122,28 @@ public class JdbcDynamicTableSource
                         .setPassword(options.getPassword().orElse(null))
                         .setAutoCommit(readOptions.getAutoCommit());
 
+        // 设置FetchSize
         if (readOptions.getFetchSize() != 0) {
             builder.setFetchSize(readOptions.getFetchSize());
         }
+        // 获取方言类型，调用对应的DialectFactory，构建select语句
         final JdbcDialect dialect = options.getDialect();
         String query =
                 dialect.getSelectFromStatement(
                         options.getTableName(),
                         DataType.getFieldNames(physicalRowDataType).toArray(new String[0]),
                         new String[0]);
+
+        Optional<String> filter = filterOptions.getFilter();
+        if (filter.isPresent() && !StringUtils.isEmpty(filter.get())) {
+            if("Oracle".equals(dialectName)) {
+                query = query + " WHERE " + filter.get().replace("\"", "'");
+            } else {
+                query = query + " WHERE " + filter.get();
+            }
+        }
+
+        // 分区条件构建
         if (readOptions.getPartitionColumnName().isPresent()) {
             long lowerBound = readOptions.getPartitionLowerBound().get();
             long upperBound = readOptions.getPartitionUpperBound().get();
@@ -125,22 +152,27 @@ public class JdbcDynamicTableSource
                     new JdbcNumericBetweenParametersProvider(lowerBound, upperBound)
                             .ofBatchNum(numPartitions));
             query +=
-                    " WHERE "
+                    (query.contains("WHERE") ? " AND " : " WHERE ")
                             + dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
                             + " BETWEEN ? AND ?";
         }
+
+        // limit 条件构建
         if (limit >= 0) {
             query = String.format("%s %s", query, dialect.getLimitClause(limit));
         }
         builder.setQuery(query);
         final RowType rowType = (RowType) physicalRowDataType.getLogicalType();
+        // 外部数据类型转成Flink类型转换器
         builder.setRowConverter(dialect.getRowConverter(rowType));
+        // 设置数据类型信息，把符合类型展开
         builder.setRowDataTypeInfo(
                 runtimeProviderContext.createTypeInformation(physicalRowDataType));
 
         return InputFormatProvider.of(builder.build());
     }
 
+    // 数据变更类型，insertOnly
     @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
@@ -160,7 +192,7 @@ public class JdbcDynamicTableSource
     @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
-                options, readOptions, lookupMaxRetryTimes, cache, physicalRowDataType);
+                options, readOptions, filterOptions, lookupMaxRetryTimes, cache, physicalRowDataType);
     }
 
     @Override
