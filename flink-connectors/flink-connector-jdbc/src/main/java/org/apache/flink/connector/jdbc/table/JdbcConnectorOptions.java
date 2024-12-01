@@ -27,6 +27,11 @@ import org.apache.flink.table.factories.FactoryUtil;
 import java.time.Duration;
 
 /** Options for the JDBC connector. */
+// 主要是定义了JDBC连接器（JDBC connector）的配置选项（常量）
+// 这些选项包括数据库URL、表名、用户名、密码、驱动程序、最大重试超时时间
+// 此外，还定义了扫描选项（如分区列、分区数、分区上下界、每批读取行数等）
+// 查找缓存选项（如最大缓存行数、缓存过期时间等）
+// 最后，还包括了一些写入配置选项，如缓冲区刷新的最大行数和间隔时间。
 @PublicEvolving
 public class JdbcConnectorOptions {
 
@@ -115,7 +120,8 @@ public class JdbcConnectorOptions {
 
     public static final ConfigOption<String> JDBC_FILTER_QUERY =
             ConfigOptions.key("jdbc.filter.query")
-                    .stringType().defaultValue("")
+                    .stringType()
+                    .defaultValue("")
                     .withDescription("push filter to database");
 
     // -----------------------------------------------------------------------------------------

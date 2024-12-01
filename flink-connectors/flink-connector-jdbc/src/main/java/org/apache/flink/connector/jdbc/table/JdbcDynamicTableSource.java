@@ -18,8 +18,6 @@
 
 package org.apache.flink.connector.jdbc.table;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcConnectorOptions;
@@ -40,6 +38,8 @@ import org.apache.flink.table.connector.source.lookup.cache.LookupCache;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 
@@ -136,7 +136,7 @@ public class JdbcDynamicTableSource
 
         Optional<String> filter = filterOptions.getFilter();
         if (filter.isPresent() && !StringUtils.isEmpty(filter.get())) {
-            if("Oracle".equals(dialectName)) {
+            if ("Oracle".equals(dialectName)) {
                 query = query + " WHERE " + filter.get().replace("\"", "'");
             } else {
                 query = query + " WHERE " + filter.get();
@@ -192,7 +192,12 @@ public class JdbcDynamicTableSource
     @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
-                options, readOptions, filterOptions, lookupMaxRetryTimes, cache, physicalRowDataType);
+                options,
+                readOptions,
+                filterOptions,
+                lookupMaxRetryTimes,
+                cache,
+                physicalRowDataType);
     }
 
     @Override
