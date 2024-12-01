@@ -91,4 +91,5 @@ under the License.
 		<!-- suppress check for copied hive code -->
 		<suppress files="org[\\/]apache[\\/]hadoop[\\/]hive[\\/].*.java" checks=".*"/>
 		<suppress files="org[\\/]apache[\\/]hive[\\/]service[\\/]rpc[\\/]thrift[\\/].*.java" checks=".*"/>
+	    <suppress files="^(?!.*\/flink-doris-connector\/).*" checks="[a-zA-Z0-9]*"/>
 </suppressions>
